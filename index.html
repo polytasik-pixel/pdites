@@ -7761,4 +7761,9 @@ window.addEventListener("beforeprint", () => {
   if (window._currentPrintJobName) {
     document.title = window._currentPrintJobName;
     const t = document.querySelector("title");
-    if (t) t.inn
+    if (t) t.innerText = window._currentPrintJobName;
+  }
+});
+</script>
+</body>
+</html>
