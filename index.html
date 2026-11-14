@@ -1559,10 +1559,10 @@ button.send:disabled{opacity:.5;cursor:not-allowed}
   -webkit-tap-highlight-color: transparent;
   outline: none;
 }
-.floating-scroll-btn:hover {
-  background: #a60d25;
-  opacity: 0.95 !important;
-  transform: scale(1.06);
+.floating-scroll-btn:hover,
+.floating-scroll-btn:focus {
+  background: #C8102E;
+  outline: none;
 }
 .floating-scroll-btn:active {
   transform: scale(0.92);
@@ -5726,7 +5726,7 @@ function saveTechModalSignature() {
     }
 
     toast("Tanda Tangan Berhasil Di Simpan", "#15803d", 3000);
-    closeTechSigModal();
+    // Modal TTD tetap muncul sesuai permintaan user (tidak ditutup otomatis saat simpan)
   });
 }
 
@@ -5740,7 +5740,7 @@ function deleteTechModalSignature() {
 
   openConfirmModal({
     icon: "🗑️",
-    title: "Hapus TTD",
+    title: "KONFIRMASI HAPUS TTD",
     msg: "Hapus data tanda tangan untuk teknisi " + techName + "?",
     okText: "Hapus",
     okColor: "#C8102E"
@@ -6036,6 +6036,8 @@ function getAppScrollContainer() {
 }
 
 function scrollToPageTop() {
+  const btn = document.getElementById("btnScrollTop");
+  if (btn) btn.blur();
   const c = getAppScrollContainer();
   if (c && typeof c.scrollTo === "function") {
     c.scrollTo({ top: 0, behavior: "smooth" });
@@ -6046,6 +6048,8 @@ function scrollToPageTop() {
 }
 
 function scrollToPageBottom() {
+  const btn = document.getElementById("btnScrollBottom");
+  if (btn) btn.blur();
   const c = getAppScrollContainer();
   const maxS = Math.max(c.scrollHeight || 0, document.documentElement.scrollHeight || 0, 999999);
   if (c && typeof c.scrollTo === "function") {
@@ -6074,7 +6078,7 @@ function updateScrollButtonsVisibility() {
   // 1. Tombol Panah Atas (Pojok Kanan Bawah):
   // Muncul apabila layar di-scroll ke atas atau berada di bawah/tengah halaman (curY > 100)
   if (curY > 100 && (isScrollingUp || curY > 240)) {
-    btnUp.style.opacity = "0.28";
+    btnUp.style.opacity = "0.18";
     btnUp.style.pointerEvents = "auto";
     btnUp.style.transform = "scale(1)";
   } else {
@@ -6086,7 +6090,7 @@ function updateScrollButtonsVisibility() {
   // 2. Tombol Panah Bawah (Pojok Kanan Atas):
   // Muncul apabila layar di-scroll ke bawah dan belum mencapai dasar halaman (curY < maxScroll - 60)
   if (maxScroll > 120 && curY < maxScroll - 60 && (isScrollingDown || curY < maxScroll - 200)) {
-    btnDown.style.opacity = "0.28";
+    btnDown.style.opacity = "0.18";
     btnDown.style.pointerEvents = "auto";
     btnDown.style.transform = "scale(1)";
   } else {
@@ -6565,7 +6569,7 @@ async function submit(e){
     icon: isOut ? "✅" : "📝",
     title: isOut ? "Simpan PDI OUT" : "Simpan PDI IN",
     msg: isOut 
-      ? `Simpan data selesai PDI OUT untuk NO. CASE ${noSCL}?`
+      ? `Anda yakin ingin menyimpan data case ${noSCL}?`
       : `Simpan formulir PDI IN untuk NO. CASE ${noSCL}?`,
     okText: "Simpan",
     okColor: "#C8102E"
