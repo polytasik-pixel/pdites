@@ -4501,7 +4501,7 @@ async function loadSCL(preselectSCL="", isSilent = false){
           } catch(e){}
         } else {
           // Masih DRAFT di Database: Sinkronkan data draft database ke cache lokal HANYA jika belum pernah ditandai DONE
-          if(!completedSet[outSCL]){
+          if(!completedSet[outSCL] && !isSclCompletedLocally(outSCL)){
             serverDraftMap.set(outSCL, r);
             try {
               localStorage.setItem("pdi_draft_out_" + outSCL, JSON.stringify(r));
@@ -6122,6 +6122,15 @@ async function processSyncQueue() {
     saveSyncQueue(curQ);
     console.log("Pengiriman latar belakang berhasil untuk NO. CASE:", item.caseNo || item.id);
 
+    // Setelah benar-benar berhasil tersimpan di database Google Sheets, baru segarkan data dari server
+    if (item.form === "PDOUT") {
+      setTimeout(() => {
+        if (cur === "OUT") {
+          loadSCL("", true);
+        }
+      }, 2500);
+    }
+
     // Buka kunci dan proses antrian berikutnya jika ada
     isProcessingQueue = false;
     if (curQ.length > 0) {
@@ -7103,11 +7112,20 @@ async function executeFormSubmit(noSCL){
   try { localStorage.removeItem(DRAFT_KEY_IN); } catch(e){}
   render();
  } else if (cur === "OUT") {
+  // 1. Hapus lokal dropdown case yang baru saja disimpan
   if (Array.isArray(pendingSCLItems)) {
     pendingSCLItems = pendingSCLItems.filter(x => String(x.scl || x.wo || x.caseNo || "").trim().toUpperCase() !== cleanSclKey);
   }
-  // Segarkan daftar No Case secara otomatis & muat data kasus berikutnya
-  await loadSCL();
+  markSclCompletedLocally(cleanSclKey);
+
+  // 2. Render ulang dropdown lokal seketika dengan sisa case yang ada (tanpa fetch server prematur)
+  if (pendingSCLItems.length > 0) {
+    const nextScl = String(pendingSCLItems[0].scl || pendingSCLItems[0].wo || "").trim().toUpperCase();
+    renderSclDropdown(pendingSCLItems, nextScl, false, true);
+  } else {
+    renderSclDropdown([], "", false, false);
+    resetChecklistAndInputs();
+  }
  }
 
  // Bersihkan kanvas tanda tangan secara menyeluruh
