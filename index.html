@@ -1208,9 +1208,9 @@ button.send:disabled{opacity:.5;cursor:not-allowed}
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #eee;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 3px solid #94a3b8;
 }
 .modal-top h3 {
   margin: 0;
@@ -1313,9 +1313,9 @@ button.send:disabled{opacity:.5;cursor:not-allowed}
   }
 
   .print-header {
-    border-bottom: 2px solid #C8102E;
-    padding-bottom: 4px;
-    margin-bottom: 6px;
+    border-bottom: 3.5px solid #C8102E;
+    padding-bottom: 5px;
+    margin-bottom: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1659,7 +1659,7 @@ button.send:disabled{opacity:.5;cursor:not-allowed}
 <div id="techSigModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.55); z-index:999997; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
   <div class="tech-sig-modal-box" style="background:#ffffff; width:100%; max-width:420px; border-radius:4px; padding:20px; box-shadow:0 10px 25px rgba(0,0,0,0.25); border:1px solid #cbd5e1; box-sizing:border-box; display:flex; flex-direction:column; gap:12px;">
     
-    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #94a3b8; padding-bottom:10px; margin-bottom:6px;">
       <div style="display:flex; align-items:center; gap:8px;">
         <span style="font-size:20px; line-height:1;">✍️</span>
         <h3 style="margin:0; font-size:16px; font-weight:700; color:#0f172a;">Tanda Tangan Teknisi</h3>
@@ -1708,8 +1708,8 @@ button.send:disabled{opacity:.5;cursor:not-allowed}
 <!-- Modal Cetak PDF PDI (IN & OUT) -->
 <div id="printModal">
   <div class="print-modal-box">
-    <div class="modal-top">
-      <h3>🖨️ CETAK DOKUMEN</h3>
+    <div class="modal-top" style="border-bottom:3px solid #94a3b8; padding-bottom:10px; margin-bottom:14px;">
+      <h3 style="margin:0; font-size:16px; font-weight:700; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px;">🖨️ CETAK DOKUMEN</h3>
       <button type="button" class="btn-modal-x" onclick="closePrintModal()" title="Tutup">✕</button>
     </div>
 
@@ -1737,7 +1737,7 @@ button.send:disabled{opacity:.5;cursor:not-allowed}
 <!-- Modal Konfirmasi Simpan / Update (Sudut 90 Derajat dengan micro-rounding 4px agar tidak lancip) -->
 <div id="confirmModal" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.55); z-index:999998; justify-content:center; align-items:center; padding:16px; box-sizing:border-box;">
   <div class="confirm-modal-box" style="background:#ffffff; width:100%; max-width:390px; border-radius:4px; padding:20px 22px; box-shadow:0 10px 25px rgba(0,0,0,0.25); border:1px solid #cbd5e1; box-sizing:border-box; display:flex; flex-direction:column;">
-    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; padding-bottom:10px; border-bottom:2.5px solid #94a3b8;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px; padding-bottom:10px; border-bottom:3px solid #94a3b8;">
       <span id="confirmModalIcon" style="font-size:22px; line-height:1;">❓</span>
       <h3 id="confirmModalTitle" style="margin:0; font-size:15px; font-weight:700; color:#0f172a; text-transform:uppercase; letter-spacing:0.5px;">KONFIRMASI</h3>
     </div>
@@ -1747,7 +1747,7 @@ button.send:disabled{opacity:.5;cursor:not-allowed}
         Batal
       </button>
       <button type="button" id="btnConfirmOk" style="flex:1; border:1px solid transparent; background:#C8102E; color:#ffffff; border-radius:4px; padding:10px 14px; font-size:13px; font-weight:700; cursor:pointer; text-align:center; box-sizing:border-box;">
-        Ya, Lanjutkan
+        SIMPAN
       </button>
     </div>
   </div>
@@ -1817,9 +1817,9 @@ button.send:disabled{opacity:.5;cursor:not-allowed}
     <select id="modalSiteSelect">
       <option value="">-- Pilih Kode Site --</option>
     </select>
-    <div style="display:flex; gap:10px; margin-top:12px;">
-      <button type="button" class="btn-save" id="btnSaveSite" disabled onclick="saveSiteSelection()" style="flex:2;">SIMPAN & LANJUTKAN</button>
-      <button type="button" class="btn-close-modal" id="btnCancelSite" onclick="closeSiteModal()" style="flex:1; padding:12px; background:#e0e0e0; color:#333; border:none; border-radius:4px; font-weight:600; cursor:pointer;">BATAL</button>
+    <div style="display:flex; gap:10px; margin-top:16px; align-items:stretch;">
+      <button type="button" class="btn-save" id="btnSaveSite" disabled onclick="saveSiteSelection()" style="flex:1; width:auto; min-height:42px; padding:10px 14px; font-size:13px; font-weight:700; border-radius:4px; box-sizing:border-box; margin:0; text-align:center;">SIMPAN</button>
+      <button type="button" class="btn-close-modal" id="btnCancelSite" onclick="closeSiteModal()" style="flex:1; width:auto; min-height:42px; padding:10px 14px; font-size:13px; font-weight:700; background:#6c757d; color:#ffffff; border:none; border-radius:4px; cursor:pointer; box-sizing:border-box; margin:0; text-align:center;">BATAL</button>
     </div>
   </div>
 </div>
@@ -3986,7 +3986,7 @@ function renderPrintDocument(scl, inData, outData, prefetchedSigs = null) {
 
   const htmlDoc = `
   <div class="print-page">
-    <div class="print-header">
+    <div class="print-header" style="border-bottom:3.5px solid #C8102E; padding-bottom:5px; margin-bottom:8px;">
       <div>
         <div class="print-brand-title">POLYTRON SERVICE CENTER</div>
         <div class="print-brand-sub">PT. SARANA KENCANA MULYA - SITE ${site}</div>
@@ -4141,8 +4141,8 @@ function renderPrintDocument(scl, inData, outData, prefetchedSigs = null) {
     page-break-after: auto;
   }
   .print-header {
-    border-bottom: 2px solid #C8102E;
-    padding-bottom: 4px; margin-bottom: 6px;
+    border-bottom: 3.5px solid #C8102E;
+    padding-bottom: 5px; margin-bottom: 8px;
     display: flex; justify-content: space-between; align-items: center;
   }
   .print-brand-title {
@@ -6061,35 +6061,54 @@ function scrollToPageBottom() {
 }
 
 let lastScrollYPos = 0;
+function isAnyModalOpen() {
+  const modalSelectors = [
+    "#confirmModal",
+    "#techSigModal",
+    "#siteModal",
+    "#printModal",
+    "#scannerModal",
+    "#cameraPhotoModal",
+    "#photoSourceModal",
+    "#offlineWarningModal"
+  ];
+  return modalSelectors.some(sel => {
+    const el = document.querySelector(sel);
+    if (!el) return false;
+    const style = window.getComputedStyle ? window.getComputedStyle(el) : el.style;
+    return style && style.display !== "none" && style.visibility !== "hidden";
+  });
+}
+
 function updateScrollButtonsVisibility() {
+  const btnUp = document.getElementById("btnScrollTop");
+  const btnDown = document.getElementById("btnScrollBottom");
+  if (!btnUp || !btnDown) return;
+
+  // JIKA ADA POPUP / MODAL YANG SEDANG MUNCUL, SEMBUNYIKAN TOMBOL MELAYANG PANAH ATAS & BAWAH
+  if (isAnyModalOpen()) {
+    btnUp.style.opacity = "0";
+    btnUp.style.pointerEvents = "none";
+    btnUp.style.transform = "scale(0.85)";
+    btnDown.style.opacity = "0";
+    btnDown.style.pointerEvents = "none";
+    btnDown.style.transform = "scale(0.85)";
+    return;
+  }
+
   const c = getAppScrollContainer();
   const curY = (c && c.scrollTop !== undefined) ? c.scrollTop : (window.scrollY || document.documentElement.scrollTop || 0);
   const scrollH = (c && c.scrollHeight !== undefined) ? c.scrollHeight : (document.documentElement.scrollHeight || document.body.scrollHeight || 0);
   const clientH = (c && c.clientHeight !== undefined) ? c.clientHeight : (window.innerHeight || 0);
   const maxScroll = Math.max(0, scrollH - clientH);
 
-  const btnUp = document.getElementById("btnScrollTop");
-  const btnDown = document.getElementById("btnScrollBottom");
-  if (!btnUp || !btnDown) return;
+  // Batas setengah scroll layar (minimal 150px atau 50% dari tinggi layar viewport)
+  const halfScreenThreshold = Math.max(150, Math.round(clientH * 0.5));
 
-  const isScrollingUp = curY < lastScrollYPos;
-  const isScrollingDown = curY > lastScrollYPos;
-
-  // 1. Tombol Panah Atas (Pojok Kanan Bawah):
-  // Muncul apabila layar di-scroll ke atas atau berada di bawah/tengah halaman (curY > 100)
-  if (curY > 100 && (isScrollingUp || curY > 240)) {
-    btnUp.style.opacity = "0.18";
-    btnUp.style.pointerEvents = "auto";
-    btnUp.style.transform = "scale(1)";
-  } else {
-    btnUp.style.opacity = "0";
-    btnUp.style.pointerEvents = "none";
-    btnUp.style.transform = "scale(0.85)";
-  }
-
-  // 2. Tombol Panah Bawah (Pojok Kanan Atas):
-  // Muncul apabila layar di-scroll ke bawah dan belum mencapai dasar halaman (curY < maxScroll - 60)
-  if (maxScroll > 120 && curY < maxScroll - 60 && (isScrollingDown || curY < maxScroll - 200)) {
+  // 1. Tombol Panah Bawah (Pojok Kanan Atas):
+  // Jika posisi layar normal / mentok atas (curY < halfScreenThreshold) -> SEMBUNYIKAN
+  // Baru muncul jika sudah setengah scroll layar (curY >= halfScreenThreshold) dan belum mentok bawah
+  if (curY >= halfScreenThreshold && maxScroll > halfScreenThreshold && curY < maxScroll - 60) {
     btnDown.style.opacity = "0.18";
     btnDown.style.pointerEvents = "auto";
     btnDown.style.transform = "scale(1)";
@@ -6099,6 +6118,18 @@ function updateScrollButtonsVisibility() {
     btnDown.style.transform = "scale(0.85)";
   }
 
+  // 2. Tombol Panah Atas (Pojok Kanan Bawah):
+  // Muncul apabila posisi layar sudah melewati batas setengah scroll layar untuk kembali ke atas
+  if (curY >= halfScreenThreshold) {
+    btnUp.style.opacity = "0.18";
+    btnUp.style.pointerEvents = "auto";
+    btnUp.style.transform = "scale(1)";
+  } else {
+    btnUp.style.opacity = "0";
+    btnUp.style.pointerEvents = "none";
+    btnUp.style.transform = "scale(0.85)";
+  }
+
   lastScrollYPos = curY;
 }
 
@@ -6106,17 +6137,35 @@ function updateScrollButtonsVisibility() {
 window.addEventListener("scroll", updateScrollButtonsVisibility, { passive: true });
 window.addEventListener("resize", updateScrollButtonsVisibility, { passive: true });
 
+function initModalFloatingObserver() {
+  const modalSelectors = [
+    "#confirmModal", "#techSigModal", "#siteModal", "#printModal",
+    "#scannerModal", "#cameraPhotoModal", "#photoSourceModal", "#offlineWarningModal"
+  ];
+  if (window.MutationObserver) {
+    const observer = new MutationObserver(() => {
+      updateScrollButtonsVisibility();
+    });
+    modalSelectors.forEach(sel => {
+      const el = document.querySelector(sel);
+      if (el) observer.observe(el, { attributes: true, attributeFilter: ["style", "class"] });
+    });
+  }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const appEl = document.getElementById("app");
   if (appEl) {
     appEl.addEventListener("scroll", updateScrollButtonsVisibility, { passive: true });
   }
+  initModalFloatingObserver();
 });
 setTimeout(() => {
   const appEl = document.getElementById("app");
   if (appEl) {
     appEl.addEventListener("scroll", updateScrollButtonsVisibility, { passive: true });
   }
+  initModalFloatingObserver();
 }, 500);
 
 // Deteksi sinyal jaringan real-time (Muncul di paling depan jika offline)
@@ -6167,7 +6216,7 @@ function openConfirmModal(config, onConfirm) {
   if (msgEl) msgEl.textContent = config.msg || "Apakah Anda yakin ingin melanjutkan tindakan ini?";
   if (iconEl) iconEl.textContent = config.icon || "❓";
   if (okBtn) {
-    okBtn.textContent = config.okText || "Ya, Lanjutkan";
+    okBtn.textContent = config.okText || "SIMPAN";
     okBtn.style.background = config.okColor || "#C8102E";
     okBtn.onclick = () => {
       const cb = confirmModalCallback;
@@ -7712,9 +7761,4 @@ window.addEventListener("beforeprint", () => {
   if (window._currentPrintJobName) {
     document.title = window._currentPrintJobName;
     const t = document.querySelector("title");
-    if (t) t.innerText = window._currentPrintJobName;
-  }
-});
-</script>
-</body>
-</html>
+    if (t) t.inn
