@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#C8102E">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Form PDI">
@@ -1667,7 +1666,7 @@ button.send:disabled{opacity:.5;cursor:not-allowed}
     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #94a3b8; padding-bottom:10px; margin-bottom:6px;">
       <div style="display:flex; align-items:center; gap:8px;">
         <span style="font-size:20px; line-height:1;">✍️</span>
-        <h3 style="margin:0; font-size:16px; font-weight:700; color:#0f172a;">Tanda Tangan Teknisi</h3>
+        <h3 style="margin:0; font-size:16px; font-weight:700; color:#0f172a; text-transform:uppercase;">TANDA TANGAN TEKNISI</h3>
       </div>
       <button type="button" onclick="closeTechSigModal()" style="border:none; background:transparent; font-size:18px; color:#64748b; cursor:pointer; padding:2px 6px; font-weight:bold;" title="Tutup">✕</button>
     </div>
@@ -1887,6 +1886,15 @@ const HISTORY_STORAGE_KEY = "pdi_in_history";
 const DRAFT_KEY_IN = "pdi_form_draft_in";
 const DRAFT_KEY_OUT = "pdi_form_draft_out";
 
+// Mengembalikan tanggal lokal saat ini (WIB / zona perangkat) dalam format YYYY-MM-DD
+function getLocalDateString() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // Autosave form draft ke localStorage agar data tidak hilang saat buka kamera, back, atau reload
 function saveFormDraft() {
   if (isSubmittingForm) return;
@@ -1963,6 +1971,8 @@ function restoreFormDraft() {
       if (draft.scl && $("#sclInput")) $("#sclInput").value = draft.scl;
       if (draft.vin && $("#seriInput")) $("#seriInput").value = draft.vin;
       if (draft.model && $("#modelInput")) $("#modelInput").value = draft.model;
+      const tglInEl = f.querySelector('[name="Tanggal"]');
+      if (tglInEl) tglInEl.value = getLocalDateString();
     } else {
       if (draft.scl && $("#sclSelect")) $("#sclSelect").value = draft.scl;
       if (draft.vin && $("#seriInput")) $("#seriInput").value = draft.vin;
@@ -2222,6 +2232,7 @@ function closeSiteModal(fromBack=false){
  const modal = $("#siteModal");
  if(modal) modal.style.display = "none";
  if(!fromBack && location.hash === "#modal-site"){
+  isClosingModalFromButton = true;
   history.back();
  }
 }
@@ -2484,23 +2495,33 @@ function renderTechField(siteName, preferredVal = ""){
  const existingSel = $("#techSelect");
  const existingCust = $("#customTechInput");
 
+ const sclSel = $("#sclSelect");
+ const isPdiOutNoCaseDash = (cur === "OUT") && (!sclSel || !sclSel.value || sclSel.value === "-" || sclSel.value === "-- PILIH NO CASE --");
+
  let targetTech = preferredVal;
- if(!targetTech && existingSel && existingSel.value && existingSel.value !== "-"){
-  targetTech = existingSel.value;
- }
- if(!targetTech){
-  targetTech = localStorage.getItem(TEKNISI_STORAGE_KEY) || "";
+ if(cur === "OUT" && (isPdiOutNoCaseDash || targetTech === "-")){
+  targetTech = "-";
+ } else {
+  if(!targetTech && existingSel && existingSel.value && existingSel.value !== "-"){
+   targetTech = existingSel.value;
+  }
+  if(!targetTech){
+   targetTech = localStorage.getItem(TEKNISI_STORAGE_KEY) || "";
+  }
+  if(!targetTech && techs.length > 0){
+   targetTech = techs[0];
+   try { localStorage.setItem(TEKNISI_STORAGE_KEY, targetTech); } catch(e){}
+  }
  }
 
  let customVal = (existingCust && existingCust.value) ? existingCust.value : (localStorage.getItem(TEKNISI_CUSTOM_KEY) || "");
 
- if(!targetTech && techs.length > 0){
-  targetTech = techs[0];
-  try { localStorage.setItem(TEKNISI_STORAGE_KEY, targetTech); } catch(e){}
- }
-
  if(techs.length > 0){
-  let optionsHtml = techs.map(t => {
+  let optionsHtml = "";
+  if(targetTech === "-" || cur === "OUT"){
+   optionsHtml += `<option value="-"${(targetTech === "-") ? " selected" : ""}>-</option>`;
+  }
+  optionsHtml += techs.map(t => {
    const isSel = (t === targetTech);
    return `<option value="${t}"${isSel ? " selected" : ""}>${t}</option>`;
   }).join("");
@@ -2537,6 +2558,14 @@ function renderTechField(siteName, preferredVal = ""){
   sel.value = targetTech;
  }
 
+ if(cur === "OUT" && targetTech === "-"){
+  sel.style.pointerEvents = "none";
+  sel.style.backgroundColor = "#e9ecef";
+ } else {
+  sel.style.pointerEvents = "auto";
+  sel.style.backgroundColor = "#ffffff";
+ }
+
  sel.onchange = () => {
   if(sel.value === "__OTHER__"){
    cust.style.display = "block";
@@ -2547,10 +2576,12 @@ function renderTechField(siteName, preferredVal = ""){
    cust.required = false;
    cust.value = "";
   }
-  try {
-   localStorage.setItem(TEKNISI_STORAGE_KEY, sel.value);
-   localStorage.setItem(TEKNISI_CUSTOM_KEY, cust.value);
-  } catch(e){}
+  if(sel.value && sel.value !== "-"){
+   try {
+    localStorage.setItem(TEKNISI_STORAGE_KEY, sel.value);
+    localStorage.setItem(TEKNISI_CUSTOM_KEY, cust.value);
+   } catch(e){}
+  }
 
   // Otomatis memicu pencarian TTD teknisi saat dropdown teknisi diganti.
   // Jika ada di lokal langsung ganti ke TTD tersebut; jika tidak ada maka canvas bersih / blank!
@@ -2740,7 +2771,7 @@ function render(preserveSCL=""){
  }
  const ev = isEvCategory(cat);
  const secs = F.sections[ev ? "EV" : "GEN"];
- const today = new Date().toISOString().slice(0, 10);
+ const today = getLocalDateString();
  
  let h = "";
 
@@ -2837,8 +2868,9 @@ function render(preserveSCL=""){
   // Semua kotak terisi otomatis dan BISA DIUBAH / DIEDIT (tidak readonly, tidak ada gembok)
   h += `
      <label class="f">Kategori Produk
-       <select id="catOut" name="Kategori Produk" style="text-transform:uppercase;">
-         ${CATS.map(c=>`<option${c===cat?" selected":""}>${c}</option>`).join("")}
+       <select id="catOut" name="Kategori Produk" style="text-transform:uppercase; pointer-events:none; background-color:#e9ecef;">
+         <option value="-"${(!cat || cat === "-") ? " selected" : ""}>-</option>
+         ${CATS.map(c=>`<option value="${c}"${c===cat?" selected":""}>${c}</option>`).join("")}
        </select>
      </label>
      <label class="f">Jenis Layanan
@@ -4403,6 +4435,7 @@ function renderSclDropdown(items, preselectSCL="", forceDisabled = false, trigge
       const warnSpan = warn.querySelector("span");
       if(warnSpan) warnSpan.textContent = "No Case PDI IN tidak ditemukan";
     }
+    applyDashPdiOutFields();
   }
 
   sel.onchange = () => {
@@ -4727,6 +4760,40 @@ function resetChecklistAndInputs(){
   }
 }
 
+// Khusus PDI OUT: Apabila No Case = "-", set kotak Kategori dan Nama Teknisi = "-"
+function applyDashPdiOutFields(){
+  if(cur !== "OUT") return;
+  // 1. Kotak Kategori = -
+  const catOut = $("#catOut");
+  if(catOut){
+    let optDash = Array.from(catOut.options).find(o => o.value === "-");
+    if(!optDash){
+      optDash = document.createElement("option");
+      optDash.value = "-";
+      optDash.textContent = "-";
+      catOut.insertBefore(optDash, catOut.firstChild);
+    }
+    catOut.value = "-";
+    cat = "-";
+    catOut.style.pointerEvents = "none";
+    catOut.style.backgroundColor = "#e9ecef";
+  }
+  // 2. Kotak Nama Teknisi = -
+  renderTechField(currentSite, "-");
+  const techSel = $("#techSelect");
+  if(techSel){
+    techSel.value = "-";
+    techSel.style.pointerEvents = "none";
+    techSel.style.backgroundColor = "#e9ecef";
+  }
+  // Bersihkan field yang sebelumnya terisi otomatis jika case menjadi -
+  const modelEl = $("#modelInput");
+  if(modelEl) modelEl.value = "";
+  const seriEl = $("#seriInput");
+  if(seriEl) seriEl.value = "";
+  resetChecklistAndInputs();
+}
+
 let sclChangeTimeout = null;
 let currentReadingScl = null;
 
@@ -4898,7 +4965,12 @@ function onSCLChange(skipDatabaseFetch = false){
  if(warn) warn.style.display = "none";
 
  const rawVal = sel.value;
- if(!rawVal || rawVal === "-") return;
+ if(!rawVal || rawVal === "-"){
+   if(cur === "OUT"){
+     applyDashPdiOutFields();
+   }
+   return;
+ }
  const sclVal = String(rawVal).trim().toUpperCase();
 
  // 1. Tampilkan respon visual instan menggunakan data lokal terlebih dahulu (Zero Latency)
@@ -4994,10 +5066,22 @@ function fillFieldsFromItem(item){
 
  // 5. Kategori Produk (Terisi otomatis, terkunci)
  const catOut = document.querySelector("#catOut");
- if(catOut && item.cat){
+ if(catOut){
   const targetCat = normalizeCategory(item.cat);
-  catOut.value = targetCat;
-  cat = targetCat;
+  if(targetCat && targetCat !== "-"){
+    let optExists = Array.from(catOut.options).some(o => o.value === targetCat);
+    if(!optExists){
+      const opt = document.createElement("option");
+      opt.value = targetCat;
+      opt.textContent = targetCat;
+      catOut.appendChild(opt);
+    }
+    catOut.value = targetCat;
+    cat = targetCat;
+  } else {
+    catOut.value = "-";
+    cat = "-";
+  }
   catOut.style.pointerEvents = "none";
   catOut.style.backgroundColor = "#e9ecef";
  }
@@ -6680,7 +6764,7 @@ async function submit(e){
  if(cur === "OUT"){
   const sclSel = $("#sclSelect");
   const sclVal = String(sclSel ? sclSel.value : "").trim().toUpperCase();
-  if(!sclVal){
+  if(!sclVal || sclVal === "-"){
    if(sclSel){
     sclSel.classList.add("field-warn");
     sclSel.scrollIntoView({behavior:"smooth", block:"center"});
@@ -7160,6 +7244,10 @@ history.replaceState({tab:"IN"}, "", "#pdi-in");
 function tab(w, push=true){
  if(w === "IN"){
    cat = "";
+   const tglInEl = document.querySelector('input[name="Tanggal"]');
+   if (tglInEl) tglInEl.value = getLocalDateString();
+ } else if(w === "OUT"){
+   cat = "-";
  }
  if(cur === w) {
   if(w === "OUT") loadSCL();
@@ -7274,7 +7362,13 @@ function handleAndroidBack() {
 }
 window.handleAndroidBack = handleAndroidBack;
 
+let isClosingModalFromButton = false;
+
 window.addEventListener("popstate", e => {
+ if (isClosingModalFromButton) {
+  isClosingModalFromButton = false;
+  return;
+ }
  if (isModalOpen("#confirmModal")) {
   closeConfirmModal(true);
   return;
@@ -7802,6 +7896,7 @@ async function stopScanner(fromBack = false) {
   isScannerStarting = false;
   await stopActiveStreams();
   if (!fromBack && location.hash === "#modal-scanner") {
+    isClosingModalFromButton = true;
     history.back();
   }
 }
@@ -8001,6 +8096,18 @@ if(!currentSite){
 }
 </script>
 <script>
+// Selalu perbarui tanggal ke hari ini saat pengguna kembali ke aplikasi
+window.addEventListener("focus", () => {
+  const tglEl = document.querySelector('input[name="Tanggal"]');
+  if (tglEl) tglEl.value = getLocalDateString();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    const tglEl = document.querySelector('input[name="Tanggal"]');
+    if (tglEl) tglEl.value = getLocalDateString();
+  }
+});
+
 window.addEventListener("beforeprint", () => {
   if (window._currentPrintJobName) {
     document.title = window._currentPrintJobName;
