@@ -66,6 +66,11 @@ button, input, select, textarea, a, .btn, label{
   -webkit-tap-highlight-color:transparent;
 }
 
+/* TEKS DI DALAM NO CASE DIBUAT BOLD */
+#sclInput, #sclSelect, select#sclSelect, input#sclInput {
+  font-weight: 700 !important;
+}
+
 /* SEMUA TEKS TOMBOL DIBUAT KAPITAL / UPPERCASE */
 button,
 .btn,
@@ -469,7 +474,7 @@ button.send:disabled{opacity:.5;cursor:not-allowed}
   font-size:13.5px;
 }
 
-#msg{
+#msg{   text-transform:uppercase !important; 
   position:fixed;
   top:max(8px, env(safe-area-inset-top));
   left:50%;
@@ -2181,7 +2186,7 @@ function serialize(form) {
 function toast(t, bg="#15803d", ms=1000){
  const m=$("#msg");
  if(!m) return;
- m.innerHTML=t;
+ m.innerHTML=String(t || "").toUpperCase();
  m.style.background=bg;
  m.style.display="block";
  void m.offsetWidth;
@@ -2421,13 +2426,13 @@ async function syncAllDatabaseFromGoogleSheets(isAuto = false) {
       syncTeknisiMap().catch(e => console.log("Sync Teknisi error:", e))
     ]);
 
-    // 2. Selalu sinkronkan data kasus PDIIN & PDOUT terbaru dari Google Sheets (memperbarui cache lokal & dropdown)
-    await loadSCL();
+    // 2. Selalu sinkronkan data kasus PDIIN & PDOUT terbaru dari Google Sheets (khusus sinkronisasi otomatis tanpa loader overlay)
+    await loadSCL("", isAuto);
 
     // 3. Jika modal cetak sedang terbuka, segarkan daftar SCL
     const printModal = $("#printModal");
     if (printModal && printModal.style.display === "flex") {
-      await loadPrintSclList();
+      await loadPrintSclList(isAuto);
     }
 
     lastDatabaseSyncTime = new Date();
@@ -2755,7 +2760,7 @@ function render(preserveSCL=""){
       </button>
     </div>
     <div class="f">
-      <select id="sclSelect" name="No SCL" required disabled style="opacity:0.65; cursor:not-allowed;">
+      <select id="sclSelect" name="No SCL" required disabled style="opacity:0.65; cursor:not-allowed; font-weight:700 !important;">
         <option value="" disabled selected>Memuat Data..</option>
       </select>
     </div>
@@ -2803,7 +2808,7 @@ function render(preserveSCL=""){
        </select>
      </label>
      <label class="f">No. Case
-       <input type="text" name="No WO" id="sclInput" placeholder="Masukan No.Case" required autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;">
+       <input type="text" name="No WO" id="sclInput" placeholder="Masukan No.Case" required autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase; font-weight:700 !important;">
      </label>
      <label class="f">${ev ? "No. Rangka / VIN" : "No. Seri (Serial Number)"}
        <div class="input-with-btn">
@@ -3100,11 +3105,13 @@ function closePrintModal(fromBack=false) {
   }
 }
 
-async function loadPrintSclList() {
+async function loadPrintSclList(isSilent = false) {
   const sel = $("#printSclSelect");
   const prevBox = $("#printPreviewBox");
   const btnPrint = $("#btnDoPrint");
   if (!sel) return;
+
+  if (!isSilent) showLoader();
 
   sel.disabled = true;
   sel.innerHTML = '<option value="">Memuat Data..</option>';
@@ -3289,11 +3296,14 @@ async function loadPrintSclList() {
     }).join("");
 
     sel.value = defaultSCL;
+    sel.disabled = false;
     onPrintSCLSelected();
   } else {
     sel.innerHTML = '<option value="">(Belum ada data No Case untuk site ini)</option>';
+    sel.disabled = false;
     if (btnPrint) btnPrint.disabled = true;
   }
+  if (!isSilent) hideLoader();
 }
 
 function onPrintSCLSelected() {
@@ -3361,9 +3371,9 @@ async function executePrintPDF() {
 
   const targetSCL = String(sel.value).trim().toUpperCase();
   const btn = $("#btnDoPrint");
-  const origBtnText = btn.innerHTML;
   btn.disabled = true;
-  btn.innerHTML = "⏳ Menyiapkan Dokumen PDF...";
+  // Teks tombol diam saja "CETAK", jangan diubah saat diklik
+  btn.innerHTML = "CETAK";
   showLoader();
 
   try {
@@ -3621,7 +3631,7 @@ async function executePrintPDF() {
     const fullHtml = renderPrintDocument(targetSCL, inData, outData, prefetchedSigs);
 
     btn.disabled = false;
-    btn.innerHTML = origBtnText;
+    btn.innerHTML = "CETAK";
 
     // Nama cetak / dokumen PDF = No Case tanpa karakter terlarang (seperti / \ : * ? " < > |)
     const cleanDocName = String(targetSCL || "").replace(/[\/\:*?"<>|&_#%^~`!+=\[\]{}();',.\-]/g, "").replace(/\s+/g, " ").trim() || "PDI_Document";
@@ -3690,8 +3700,10 @@ async function executePrintPDF() {
   } catch(err) {
     hideLoader();
     alert("Gagal memproses cetak PDF: " + err.message);
-    btn.disabled = false;
-    btn.innerHTML = origBtnText;
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = "CETAK";
+    }
   }
 }
 
@@ -4366,7 +4378,7 @@ function renderSclDropdown(items, preselectSCL="", forceDisabled = false, trigge
       const isSel = currentVal ? (s === String(currentVal).trim().toUpperCase()) : (idx === 0);
       const isDraft = !!w.isDraft || !!localStorage.getItem("pdi_draft_out_" + s);
       const label = (isDraft ? "[DRAFT] " : "") + s;
-      return `<option value="${s}"${isSel ? " selected" : ""}>${label}</option>`;
+      return `<option value="${s}"${isSel ? " selected" : ""} style="font-weight:700;">${label}</option>`;
     }).join("");
     sel.disabled = forceDisabled;
     sel.style.opacity = forceDisabled ? "0.65" : "1";
@@ -4378,7 +4390,7 @@ function renderSclDropdown(items, preselectSCL="", forceDisabled = false, trigge
       : String(items[0].scl || items[0].wo || items[0].caseNo || "").trim().toUpperCase();
     sel.value = targetVal;
     if(!forceDisabled && triggerChange){
-      onSCLChange();
+      onSCLChange(true);
     }
   } else {
     sel.innerHTML = `<option value="-">-</option>`;
@@ -4394,15 +4406,15 @@ function renderSclDropdown(items, preselectSCL="", forceDisabled = false, trigge
   }
 
   sel.onchange = () => {
-    if(!sel.disabled) onSCLChange();
+    if(!sel.disabled) onSCLChange(false);
   };
 }
 
 // Memuat daftar No SCL Pending (dari PDI IN yang belum selesai di PDI OUT)
-async function loadSCL(preselectSCL=""){
-  showLoader();
+async function loadSCL(preselectSCL="", isSilent = false){
+  if (!isSilent) showLoader();
   const sel = $("#sclSelect");
-  if(!sel) { hideLoader(); return; }
+  if(!sel) { if (!isSilent) hideLoader(); return; }
 
   const siteCode = normalizeSite(currentSite || ($("#site") ? $("#site").value : ""));
   if(!siteCode){
@@ -4410,7 +4422,7 @@ async function loadSCL(preselectSCL=""){
     sel.disabled = false;
     sel.style.opacity = "1";
     sel.style.cursor = "pointer";
-    hideLoader();
+    if (!isSilent) hideLoader();
     return;
   }
 
@@ -4442,7 +4454,7 @@ async function loadSCL(preselectSCL=""){
   }
 
   // 2. MUNCULKAN NOTIFIKASI LOADING & KUNCI TOMBOL REFRESH
-  showSclLoadingNotification(true);
+  if (!isSilent) showSclLoadingNotification(true);
 
   let serverItems = [];
   let completedSet = {};
@@ -4651,10 +4663,10 @@ async function loadSCL(preselectSCL=""){
   renderSclDropdown(finalItems, preselectSCL, false);
 
   // 6. SELESAIKAN NOTIFIKASI LOADING & AKTIFKAN KEMBALI DROPDOWN
-  showSclLoadingNotification(false, loadedFromServer, finalItems.length);
+  if (!isSilent) showSclLoadingNotification(false, loadedFromServer, finalItems.length);
 
-  if(!finalItems || finalItems.length === 0){
-    hideLoader();
+  if (!isSilent || !finalItems || finalItems.length === 0) {
+    if (!isSilent) hideLoader();
   }
 }
 
@@ -4716,7 +4728,169 @@ function resetChecklistAndInputs(){
 }
 
 let sclChangeTimeout = null;
-function onSCLChange(){
+let currentReadingScl = null;
+
+// Fungsi Utama Membaca / Mengambil Data Terkini Kasus dari Database Google Sheets (PDI IN & PDI OUT)
+async function bacaDataCase(sclVal){
+  if(!sclVal || sclVal === "-") return;
+  const targetScl = String(sclVal).trim().toUpperCase();
+  currentReadingScl = targetScl;
+
+  const btnSpin = $("#refreshSclIcon");
+  if(btnSpin) btnSpin.style.animation = "spin 1s linear infinite";
+  showLoader();
+
+  try {
+    const siteCode = normalizeSite(currentSite || ($("#site") ? $("#site").value : ""));
+
+    // 1. Ambil data real-time dari Google Sheets (PDIIN & PDOUT)
+    const [resIn, resOut] = await Promise.all([
+      fetchGvizSheet(SHEET_NAME_IN, 8000).catch(() => null),
+      fetchGvizSheet(SHEET_NAME_OUT, 8000).catch(() => null)
+    ]);
+
+    // Cegah race condition jika pengguna sudah mengganti No Case lain saat fetch sedang berjalan
+    const sel = $("#sclSelect");
+    const activeScl = sel ? String(sel.value).trim().toUpperCase() : "";
+    if(activeScl !== targetScl || currentReadingScl !== targetScl) return;
+
+    let inRow = null;
+    let outRow = null;
+
+    if(resOut){
+      const rowsOut = parseGvizToDictList(resOut);
+      for(let j = rowsOut.length - 1; j >= 0; j--){
+        const s = String(rowsOut[j]["No SCL"] || rowsOut[j]["No CASE"] || rowsOut[j]["NO. CASE"] || rowsOut[j]["No WO"] || "").trim().toUpperCase();
+        if(s === targetScl){
+          outRow = rowsOut[j];
+          break;
+        }
+      }
+    }
+
+    if(resIn){
+      const rowsIn = parseGvizToDictList(resIn);
+      for(let i = rowsIn.length - 1; i >= 0; i--){
+        const s = String(rowsIn[i]["No SCL"] || rowsIn[i]["No CASE"] || rowsIn[i]["NO. CASE"] || rowsIn[i]["No WO"] || "").trim().toUpperCase();
+        if(s === targetScl){
+          inRow = rowsIn[i];
+          break;
+        }
+      }
+    }
+
+    // 2. Evaluasi status di PDOUT: Apakah sudah selesai (DONE) atau masih DRAFT
+    let isDraft = false;
+    let draftDataObj = null;
+
+    if(outRow){
+      const stat = String(outRow["Status"] || outRow["Status PDI"] || "").trim().toUpperCase();
+      const setuju = String(outRow["Konsumen Setuju"] || "").trim().toUpperCase();
+      const subId = String(outRow["ID Submit"] || "").trim().toUpperCase();
+      isDraft = (stat === "DRAFT" || setuju === "DRAFT" || subId.indexOf("DRAFT") === 0);
+
+      if(!isDraft){
+        // Sudah selesai (DONE) di database: tandai selesai, bersihkan draft, dan muat ulang daftar kasus
+        try {
+          localStorage.setItem("pdi_completed_out_" + targetScl, "1");
+          localStorage.removeItem("pdi_draft_out_" + targetScl);
+          localStorage.removeItem("pdi_out_data_" + targetScl);
+          localStorage.removeItem("pdi_photo_out_" + targetScl);
+          localStorage.removeItem("pdi_sig_konsumen_out_" + targetScl);
+          localStorage.removeItem("pdi_sig_tek_out_" + targetScl);
+          localStorage.removeItem("pdi_sig_konsumen_url_" + targetScl);
+          localStorage.removeItem("pdi_sig_tek_url_" + targetScl);
+        } catch(e){}
+
+        toast("Case " + targetScl + " telah selesai (DONE) di database", "#C8102E");
+        await loadSCL();
+        return;
+      } else {
+        // Masih DRAFT: simpan data draft database ke cache lokal
+        draftDataObj = outRow;
+        try {
+          localStorage.setItem("pdi_draft_out_" + targetScl, JSON.stringify(outRow));
+          localStorage.removeItem("pdi_completed_out_" + targetScl);
+          if(outRow["Foto Unit (link)"]) localStorage.setItem("pdi_photo_out_" + targetScl, outRow["Foto Unit (link)"]);
+          if(outRow["TTD Konsumen (link)"]) localStorage.setItem("pdi_sig_konsumen_url_" + targetScl, outRow["TTD Konsumen (link)"]);
+          if(outRow["TTD Teknisi (link)"]) localStorage.setItem("pdi_sig_tek_url_" + targetScl, outRow["TTD Teknisi (link)"]);
+        } catch(e){}
+      }
+    } else {
+      try {
+        localStorage.removeItem("pdi_completed_out_" + targetScl);
+      } catch(e){}
+    }
+
+    // 3. Simpan data PDI IN ke cache lokal jika ditemukan di sheet PDIIN
+    if(inRow){
+      try {
+        localStorage.setItem("pdi_in_data_" + targetScl, JSON.stringify(inRow));
+        if(inRow["Foto Unit (link)"]) localStorage.setItem("pdi_photo_in_" + targetScl, inRow["Foto Unit (link)"]);
+        if(inRow["TTD Konsumen (link)"]) localStorage.setItem("pdi_sig_konsumen_url_" + targetScl, inRow["TTD Konsumen (link)"]);
+        if(inRow["TTD Teknisi (link)"]) localStorage.setItem("pdi_sig_tek_url_" + targetScl, inRow["TTD Teknisi (link)"]);
+      } catch(e){}
+    }
+
+    // 4. Perbarui data item di pendingSCLItems
+    let item = pendingSCLItems.find(x => String(x.scl || x.wo || "").trim().toUpperCase() === targetScl);
+    if(!item && inRow){
+      item = {
+        scl: targetScl,
+        wo: targetScl,
+        caseNo: targetScl,
+        model: String(inRow["Model Unit"] || "").trim(),
+        vin: String(inRow["VIN"] || "").trim(),
+        cat: normalizeCategory(inRow["Kategori Produk"] || ""),
+        layanan: String(inRow["Jenis Layanan"] || "").trim().toUpperCase(),
+        teknisi: String(inRow["Teknisi"] || "").trim(),
+        site: inRow["Site Service Center"] || siteCode,
+        date: inRow["Tanggal"] || inRow["Waktu Submit"] || "",
+        isDraft: isDraft,
+        draftData: draftDataObj,
+        rawIn: inRow
+      };
+      pendingSCLItems.push(item);
+    } else if(item){
+      if(inRow){
+        item.model = String(inRow["Model Unit"] || item.model || "").trim();
+        item.vin = String(inRow["VIN"] || item.vin || "").trim();
+        item.cat = normalizeCategory(inRow["Kategori Produk"] || item.cat);
+        item.layanan = String(inRow["Jenis Layanan"] || item.layanan || "").trim().toUpperCase();
+        item.teknisi = String(inRow["Teknisi"] || item.teknisi || "").trim();
+        item.site = inRow["Site Service Center"] || item.site || siteCode;
+        item.rawIn = inRow;
+      }
+      item.isDraft = isDraft;
+      item.draftData = draftDataObj || item.draftData;
+    }
+
+    // 5. Terapkan data terbaru ke seluruh field formulir PDI OUT
+    if(item){
+      const targetCat = normalizeCategory(item.cat);
+      const isEvDiff = isEvCategory(targetCat) !== isEvCategory(cat);
+      cat = targetCat;
+
+      if(isEvDiff){
+        render();
+        renderSclDropdown(pendingSCLItems, targetScl, false, false);
+      } else {
+        resetChecklistAndInputs();
+      }
+
+      fillFieldsFromItem(item);
+    }
+  } catch(errFetch){
+    console.warn("Gagal membaca data case dari database:", errFetch);
+  } finally {
+    if(btnSpin) btnSpin.style.animation = "";
+    hideLoader();
+  }
+}
+window.bacaDataCase = bacaDataCase;
+window.readCaseData = bacaDataCase;
+
+function onSCLChange(skipDatabaseFetch = false){
  const sel = $("#sclSelect");
  if(!sel) return;
  sel.classList.remove("field-warn");
@@ -4727,32 +4901,32 @@ function onSCLChange(){
  if(!rawVal || rawVal === "-") return;
  const sclVal = String(rawVal).trim().toUpperCase();
 
- showLoader();
- if(sclChangeTimeout) clearTimeout(sclChangeTimeout);
- sclChangeTimeout = setTimeout(() => {
-   try {
-     const item = pendingSCLItems.find(x => String(x.scl || x.wo || "").trim().toUpperCase() === sclVal);
-     if(!item) return;
-
-     const targetCat = normalizeCategory(item.cat);
+ // 1. Tampilkan respon visual instan menggunakan data lokal terlebih dahulu (Zero Latency)
+ try {
+   const localItem = pendingSCLItems.find(x => String(x.scl || x.wo || "").trim().toUpperCase() === sclVal);
+   if(localItem){
+     const targetCat = normalizeCategory(localItem.cat);
      const isEvDiff = isEvCategory(targetCat) !== isEvCategory(cat);
-
      cat = targetCat;
 
      if(isEvDiff){
-       // Re-render checklist layout hanya jika berbeda kategori EV vs Non-EV
        render();
-       // Pertahankan opsi dropdown tanpa memicu onSCLChange berulang
        renderSclDropdown(pendingSCLItems, sclVal, false, false);
      } else {
        resetChecklistAndInputs();
      }
-
-     fillFieldsFromItem(item);
-   } finally {
-     hideLoader();
+     fillFieldsFromItem(localItem);
    }
- }, 2000);
+ } catch(e){}
+
+ // 2. Otomatis panggil fungsi baca data dari database Google Sheets agar data yang muncul sama dengan database
+ if(!skipDatabaseFetch){
+   showLoader();
+   if(sclChangeTimeout) clearTimeout(sclChangeTimeout);
+   sclChangeTimeout = setTimeout(() => {
+     bacaDataCase(sclVal);
+   }, 30);
+ }
 }
 
 // Mengisi data header di PDI OUT dari data PDI IN (SEMUA FIELD BISA DIUBAH / DIEDIT)
@@ -6928,6 +7102,12 @@ async function executeFormSubmit(noSCL){
   cat = "";
   try { localStorage.removeItem(DRAFT_KEY_IN); } catch(e){}
   render();
+ } else if (cur === "OUT") {
+  if (Array.isArray(pendingSCLItems)) {
+    pendingSCLItems = pendingSCLItems.filter(x => String(x.scl || x.wo || x.caseNo || "").trim().toUpperCase() !== cleanSclKey);
+  }
+  // Segarkan daftar No Case secara otomatis & muat data kasus berikutnya
+  await loadSCL();
  }
 
  // Bersihkan kanvas tanda tangan secara menyeluruh
@@ -6982,8 +7162,11 @@ function tab(w, push=true){
   if(w === "OUT"){
    history.pushState({tab:"OUT"}, "", "#pdi-out");
   } else {
-   history.pushState({tab:"IN"}, "", "#pdi-in");
+   // Saat berpindah ke PDI IN, timpa history agar tidak meninggalkan jejak #pdi-out di tumpukan back
+   history.replaceState({tab:"IN"}, "", "#pdi-in");
   }
+ } else {
+  history.replaceState({tab:w}, "", w === "OUT" ? "#pdi-out" : "#pdi-in");
  }
  if(w === "IN"){
    cat = "";
@@ -7001,8 +7184,29 @@ function isModalOpen(selector) {
  return el && el.style.display !== "none" && el.style.display !== "";
 }
 
+let lastBackPressTime = 0;
+
+function showExitNotification() {
+  const now = Date.now();
+  if (now - lastBackPressTime < 2000) {
+    // Tekanan ke-2 dalam rentang 2 detik -> Tutup/keluar aplikasi
+    if (window.AndroidApp && typeof window.AndroidApp.exitApp === "function") {
+      window.AndroidApp.exitApp();
+    } else if (navigator.app && typeof navigator.app.exitApp === "function") {
+      navigator.app.exitApp();
+    } else {
+      window.close();
+    }
+  } else {
+    // Tekanan pertama -> Munculkan notifikasi
+    lastBackPressTime = now;
+    toast("Klik BACK 1x lagi untuk keluar", "#1e293b", 2000);
+  }
+}
+
 // Tangani tombol Back HP & Chrome: Menutup popup otomatis jika ada yang terbuka
 function handleAndroidBack() {
+  // 1. Tutup popup / modal jika ada yang sedang terbuka
   if (isModalOpen("#confirmModal")) {
     closeConfirmModal(true);
     return true;
@@ -7031,10 +7235,23 @@ function handleAndroidBack() {
     closeSiteModal(true);
     return true;
   }
-  if (location.hash === "#pdi-out") {
+
+  // 2. Jika sedang di menu PDI OUT: Tombol back mengembalikan ke menu PDI IN
+  if (cur === "OUT" || location.hash === "#pdi-out") {
     tab("IN");
     return true;
   }
+
+  // 3. Jika sedang di menu PDI IN:
+  // JANGAN PERNAH pindah ke menu PDI OUT!
+  try {
+    history.replaceState({tab:"IN"}, "", "#pdi-in");
+  } catch(e){}
+
+  // Tampilkan notifikasi keluar
+  showExitNotification();
+
+  // Kembalikan false ke Android Java agar MainActivity.java juga memicu finish() pada klik kedua
   return false;
 }
 window.handleAndroidBack = handleAndroidBack;
@@ -7075,10 +7292,19 @@ window.addEventListener("popstate", e => {
   }
  }
 
- // 4. Tangani perpindahan tab (PDI OUT -> PDI IN)
- const target = (e.state && e.state.tab) || (location.hash === "#pdi-out" ? "OUT" : "IN");
- if (target !== cur) {
-  tab(target, false);
+ // Jika posisi berada di menu PDI IN: JANGAN PERNAH beralih ke PDI OUT!
+ if (cur === "IN") {
+  try {
+   history.pushState({tab:"IN"}, "", "#pdi-in");
+  } catch(err){}
+  showExitNotification();
+  return;
+ }
+
+ // Jika posisi berada di menu PDI OUT: Back mengembalikan ke PDI IN
+ if (cur === "OUT") {
+  tab("IN", false);
+  return;
  }
 });
 
